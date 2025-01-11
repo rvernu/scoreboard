@@ -1,3 +1,5 @@
+import json
+
 import requests
 
 import gpxpy
@@ -77,7 +79,7 @@ def request_road_data(latitude: float, longitude: float):
 def print_road_data(data):
     for element in data['elements']:
         if 'tags' in element and 'highway' in element['tags']:
-            print(f"도로 정보: {element}")
+            print(f"도로 정보: {json.dumps(element, indent=4)}")
             # print(f"도로 ID: {element['id']}, 도로 종류: {element['tags']['highway']}")
             # print("도로 태그:", element['tags'])
 

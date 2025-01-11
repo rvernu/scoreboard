@@ -7,6 +7,8 @@ def create_app():
     with app.app_context():
         # Import and register blueprints
         from .routes import main
+        from .route.image.image import image_route
         app.register_blueprint(main)
+        app.register_blueprint(image_route)
 
     return app
