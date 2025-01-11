@@ -1,1 +1,1 @@
-from lane_detection import *
+from .lane_detection import is_rightmost

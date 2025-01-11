@@ -1,1 +1,1 @@
-from human_detection import *
+from .human_detection import is_human

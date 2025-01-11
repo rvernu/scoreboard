@@ -1,1 +1,1 @@
-from cross_detection import *
+from .crosswalk_detection import is_crosswalk

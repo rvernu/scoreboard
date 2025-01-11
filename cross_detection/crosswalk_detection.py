@@ -23,9 +23,16 @@ stride = int(model.stride.max())
 
 net = cv2.dnn.readNetFromDarknet('weights/yolov4-ANPR.cfg', 'weights/yolov4-ANPR.weights')
 
-def is_crosswalk(path):
-    img = cv2.imread(path)
+def is_crosswalk(data):
+    if data is np.ndarray:
+        return check_crosswalk(data)
+    elif data is str:
+        img = cv2.imread(data)
+        return check_crosswalk(img)
+    else:
+        raise Exception("Either image path or image itself must be given.")
 
+def check_crosswalk(img):
     # preprocess
     img_input = letterbox(img, img_size, stride=stride)[0]
     img_input = img_input.transpose((2, 0, 1))[::-1]

@@ -12,19 +12,26 @@ from utils import util
 model = torch.load('./weights/best.pt', map_location='cpu')['model'].float()
 model.eval()
 
-@torch.no_grad()
-def is_human(path, x_limit, y_limit):
-    input_size = 640
+def is_human(data, x_limit, y_limit):
+    if data is np.ndarray:
+        return check_human(data, x_limit, y_limit)
+    elif data is str:
+        img = cv2.imread(data)
+        return check_human(img, x_limit, y_limit)
+    else:
+        raise Exception("Either image path or image itself must be given.")
 
-    image = cv2.imread(path)
-    shape = image.shape[:2]
+@torch.no_grad()
+def check_human(img, x_limit, y_limit):
+    input_size = 640
+    shape = img.shape[:2]
 
     r = input_size / max(shape[0], shape[1])
     if r != 1:
         resample = cv2.INTER_LINEAR if r > 1 else cv2.INTER_AREA
-        image = cv2.resize(image, dsize=(int(shape[1] * r), int(shape[0] * r)), interpolation=resample)
+        img = cv2.resize(img, dsize=(int(shape[1] * r), int(shape[0] * r)), interpolation=resample)
 
-    height, width = image.shape[:2]
+    height, width = img.shape[:2]
 
     r = min(1.0, input_size / height, input_size / width)
 
@@ -33,14 +40,14 @@ def is_human(path, x_limit, y_limit):
     h = np.mod((input_size - pad[1]), 32) / 2
 
     if (width, height) != pad:
-        image = cv2.resize(image, pad, interpolation=cv2.INTER_LINEAR)
+        img = cv2.resize(img, pad, interpolation=cv2.INTER_LINEAR)
 
     top, bottom = int(round(h - 0.1)), int(round(h + 0.1))
     left, right = int(round(w - 0.1)), int(round(w + 0.1))
-    image = cv2.copyMakeBorder(image, top, bottom, left, right, cv2.BORDER_CONSTANT)
+    img = cv2.copyMakeBorder(img, top, bottom, left, right, cv2.BORDER_CONSTANT)
 
     # Convert HWC to CHW, BGR to RGB
-    x = image.transpose((2, 0, 1))[::-1]  # BGR to RGB
+    x = img.transpose((2, 0, 1))[::-1]  # BGR to RGB
     x = np.ascontiguousarray(x)
     x = torch.from_numpy(x)
     x = x.unsqueeze(dim=0)
@@ -68,7 +75,7 @@ def is_human(path, x_limit, y_limit):
             box = box.cpu().numpy()
             x1, y1, x2, y2, score, index = box
             
-            if abs(x1-x2) >=  x_limit * shape[0] and abs(y1-y2) > y_limit * shape[1]:
+            if abs(x1-x2) >= x_limit * shape[0] and abs(y1-y2) >= y_limit * shape[1]:
                 return True
     
     return False

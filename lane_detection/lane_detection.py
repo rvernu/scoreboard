@@ -1,4 +1,5 @@
 import cv2
+import numpy as np
 
 from ultrafastLaneDetector import UltrafastLaneDetector, ModelType
 
@@ -9,9 +10,16 @@ use_gpu = False
 # Initialize lane detection model
 lane_detector = UltrafastLaneDetector(model_path, model_type, use_gpu)
 
-def is_rightmost(image_path):
-    img = cv2.imread(image_path, cv2.IMREAD_COLOR)
-    
+def is_rightmost(data):
+    if data is np.ndarray:
+        return check_rightmost(data)
+    elif data is str:
+        img = cv2.imread(data)
+        return check_rightmost(img)
+    else:
+        raise Exception("Either image path or image itself must be given.")
+
+def check_rightmost(img):
     return lane_detector.detect_lanes(img)
 
 '''
