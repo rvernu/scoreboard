@@ -9,7 +9,7 @@ from nets import nn
 from utils import util
 
 @torch.no_grad()
-def is_human(path):
+def is_human(path, x_limit, y_limit):
     # Load model
     model = torch.load('./weights/best.pt', map_location='cpu')['model'].float()
     model.eval()
@@ -63,11 +63,16 @@ def is_human(path):
         output[:, 2].clamp_(0, shape[1])  # x2
         output[:, 3].clamp_(0, shape[0])  # y2
 
-        if len(output) != 0:
-            return True
-        
+        for box in output:
+            box = box.cpu().numpy()
+            x1, y1, x2, y2, score, index = box
+            
+            if abs(x1-x2) >=  x_limit * shape[0] and abs(y1-y2) > y_limit * shape[1]:
+                return True
+    
     return False
 
+'''
 def profile(params, input_size=640):
     model = nn.yolo_v8_n(len(params['names']))
     shape = (1, 3, input_size, input_size)
@@ -75,9 +80,10 @@ def profile(params, input_size=640):
     model.eval()
     model(torch.zeros(shape))
     params = sum(p.numel() for p in model.parameters())
-
+'''
 
 if __name__ == "__main__":
+    '''
     with open('utils/args.yaml', errors='ignore') as f:
         params = yaml.safe_load(f)
 
@@ -85,4 +91,9 @@ if __name__ == "__main__":
     util.setup_multi_processes()
 
     profile(params)
-    print(is_human('test3.jpg'))
+    '''
+
+    print(is_human('test.jpg', 0.1, 0.2))
+    print(is_human('test2.jpg', 0.1, 0.2))
+    print(is_human('test3.jpg', 0.1, 0.2))
+    print(is_human('test3.webp', 0.1, 0.2))
