@@ -121,11 +121,12 @@ def detect_wrong_intersection(points):
     last = None
     pairs = []
     for end in range(len(on_intersections)):
-        if on_intersections[end].get('mapCtptIntId') != last:
-            if start != end & on_intersections[start] is not None:
-                pairs.append((start, end))
-            start = end
-            last = on_intersections[end].get('mapCtptIntId')
+        if on_intersections[end]:
+            if on_intersections[end].get('mapCtptIntId') != last:
+                if start != end & on_intersections[start] is not None:
+                    pairs.append((start, end))
+                start = end
+                last = on_intersections[end].get('mapCtptIntId')
 
     result = []
     for pair in pairs:
