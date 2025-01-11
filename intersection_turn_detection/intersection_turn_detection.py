@@ -118,7 +118,7 @@ def calculate_angle(points):
 def detect_wrong_intersection(points):
     on_intersections = [find_nearest_intersection(point.latitude, point.longitude) for point in points]
     start, end = 0, 0
-    last = None
+    last = on_intersections[end].get('itstId') if on_intersections[end] else None
     pairs = []
     for end in range(len(on_intersections)):
         if on_intersections[end]:
@@ -132,6 +132,8 @@ def detect_wrong_intersection(points):
                 pairs.append([start, end])
             start = end
             last = None
+    if start != end and (on_intersections[start] is not None):
+        pairs.append([start, end])
     
     result = []
     for pair in pairs:
@@ -165,16 +167,6 @@ if __name__ == "__main__":
             self.timestamp = timestamp
 
     # TODO: 처음부터 교차로로 시작하는 경우를 고려하기
-
-    gps_data_straight = [ # [lat,lng,sec]
-        GPSData(37.56999868840013, 126.98315652859004, 0),
-        GPSData(37.57016763148278, 126.98320176879615, 1),
-        GPSData(37.57033206353528, 126.98320456176337, 2),
-        GPSData(37.57039286172259, 126.98307154284846, 3),
-        GPSData(37.570397343049386, 126.98290740767071, 4),
-        GPSData(37.570397314617075, 126.98271214462073, 5)
-    ]
-
     gps_data_curve = [
         GPSData(37.56999868840013, 126.98315652859004, 0),
         GPSData(37.57017662973051, 126.98311969993564, 1),
@@ -182,8 +174,6 @@ if __name__ == "__main__":
         GPSData(37.57033877261069, 126.98286780249536, 3),
         GPSData(37.570397314617075, 126.98271214462073, 4)
     ]
-
-    print(detect_wrong_intersection(gps_data_straight))
     print(detect_wrong_intersection(gps_data_curve))
 
     # print(correct_coords(gps_datas))
