@@ -1,11 +1,11 @@
 # https://github.com/jahongir7174/YOLOv8-human?tab=readme-ov-file
 
 import torch
-import yaml
+# import yaml
 import cv2
 import numpy as np
 
-from nets import nn
+# from nets import nn
 from utils import util
 
 @torch.no_grad()

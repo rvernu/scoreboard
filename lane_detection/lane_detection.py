@@ -2,7 +2,7 @@ import cv2
 
 from ultrafastLaneDetector import UltrafastLaneDetector, ModelType
 
-model_path = "models/tusimple_18.pth"
+model_path = "weights/tusimple_18.pth"
 model_type = ModelType.TUSIMPLE
 use_gpu = False
 

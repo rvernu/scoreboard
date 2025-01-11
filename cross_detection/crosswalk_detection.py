@@ -6,7 +6,7 @@ from utils.datasets import letterbox
 from utils.general import non_max_suppression, scale_coords
 
 # 횡단보도,신호등 모델
-MODEL_PATH = 'model/best.pt'
+MODEL_PATH = 'weights/best.pt'
 
 img_size = 640
 conf_thres = 0.5  # confidence threshold
@@ -21,7 +21,7 @@ model = ckpt['ema' if ckpt.get('ema') else 'model'].float().fuse().eval()
 class_names = ['횡단보도', '빨간불', '초록불'] # model.names
 stride = int(model.stride.max())
 
-net = cv2.dnn.readNetFromDarknet('model/yolov4-ANPR.cfg', 'model/yolov4-ANPR.weights')
+net = cv2.dnn.readNetFromDarknet('weights/yolov4-ANPR.cfg', 'weights/yolov4-ANPR.weights')
 
 def is_crosswalk(path):
     img = cv2.imread(path)

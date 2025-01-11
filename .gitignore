@@ -2,6 +2,4 @@ __pycache__/
 
 # virtual env path
 uvenv/
-
-# model name
-tusimple_18.pth
+tmp/
