@@ -32,7 +32,6 @@ def correct_coords(coordinates):
     else:
         raise Exception(f"Error: {response.status_code}, {response.text}")
 
-
 intersections = json.load(open('crossroadMapInfo.json', 'r', encoding='utf-8'))
 
 # 위도, 경도를 하버사인 공식을 이용해서 거리로 변환
@@ -65,7 +64,6 @@ def find_nearest_intersection(lat, lon):
             nearest_intersection = intersection
 
     return nearest_intersection if nearest_intersection != 5/1000 else None
-
 
 # 수평경로와 수직경로, 시간차를 이용해서 속도를 계산
 def calculate_speed(points):
@@ -106,14 +104,6 @@ def calculate_angle(points):
 
     return angle_deg - 180
 
-# 급격한 가속도를 탐지
-# def detect_rapid_acceleration(points):
-#     REF = 5
-#     speed = [calculate_speed([points[i], points[i + 1]]) for i in range(len(points) - 1)]
-#     acceleration = [(speed[i] - speed[i - 1]) / ((points[i].timestamp - points[i-1].timestamp)/3600) for i in range(1, len(speed))]
-#
-#     rapid_acceleration = [points[i] for i in range(1, len(acceleration)) if acceleration[i] > REF]
-#     return rapid_acceleration
 
 def detect_wrong_turn(points):
     on_intersections = [find_nearest_intersection(point.latitude, point.longitude) for point in points]
@@ -141,7 +131,6 @@ def detect_wrong_turn(points):
             result.append(pair)
     return result
 
-
 # 회전이 올바른지를 탐지
 def is_turncorrectly(gps_datas, velocity_threshold=15, angle_threshold=45): # km/h, degree
     if len(gps_datas) <= 2:
@@ -157,6 +146,48 @@ def is_turncorrectly(gps_datas, velocity_threshold=15, angle_threshold=45): # km
             result += datas[1]
 
     return abs(result) <= angle_threshold
+
+
+def detect_wrong_cross(points, timestamps):
+    # 연속한 timestamp 찾기(현재 간격 15초)
+    # 연속한 timestamp가 있을 시 처음 타임스탬프 ~ 마지막 타임스탬프 + 10초동안 속도 확인
+    # 속도가 기준보다 높은 때가 있으면 킥보드를 타고 횡단보도를 건넜다고 판단
+
+    if len(timestamps) < 2:
+        return []
+
+    start = timestamps[0]
+    last = timestamps[0]
+
+    pairs = []
+    for end in timestamps:
+        if end - last > 15:
+            if start != last:
+                pairs.append([start, last])
+            start = end
+        last = end
+    if start != last:
+        pairs.append([start, last])
+
+    result = []
+    for pair in pairs:
+        gps_datas = []
+        for i in range(len(points)):
+            if pair[0] <= timestamps[i] <= pair[1]:
+                gps_datas.append(points[i])
+        if not is_crosswalkcorrectly(gps_datas):
+            result.append(pair)
+    return result
+
+
+def is_crosswalkcorrectly(gps_datas, velocity_threshold=10): # km/h
+    if len(gps_datas) <= 2:
+        return True
+
+    velocities = [calculate_speed(coord_datas) for coord_datas in list(zip(gps_datas, gps_datas[1:]))]
+    mean_velocities = [(velocity_datas[0] + velocity_datas[1])/2 for velocity_datas in list(zip(velocities, velocities[1:]))]
+
+    return all([velocity < velocity_threshold for velocity in mean_velocities])
 
 
 if __name__ == "__main__":
