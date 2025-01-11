@@ -54,12 +54,38 @@ def haversine(lat1, lon1, lat2, lon2):
 # 수평경로와 수직경로, 시간차를 이용해서 속도를 계산
 def calculate_speed(point1, point2):
     latlng_distance = haversine(point1.latitude, point1.longitude, point2.latitude, point2.longitude) # km
-    final_distance = math.sqrt(latlng_distance ** 2 + ((point1.elevation - point2.elevation) / 1000) ** 2) # km
+    # final_distance = math.sqrt(latlng_distance ** 2 + ((point1.elevation - point2.elevation) / 1000) ** 2) # km
     time = (point2.time - point1.time).total_seconds() / 3600 # hour
     if time > 0:
-        return round(final_distance / time, 4) # km/h
+        return round(latlng_distance / time, 4) # km/h
     else:
         return 0
+
+def deg_to_rad(degrees):
+    return degrees * math.pi / 180.0
+
+def calculate_angle(point1, point2, point3):
+    lat1, lon1 = point1.latitude, point1.longitude
+    lat2, lon2 = point2.latitude, point2.longitude
+    lat3, lon3 = point3.latitude, point3.longitude
+    
+    lat1 = deg_to_rad(lat1)
+    lon1 = deg_to_rad(lon1)
+    lat2 = deg_to_rad(lat2)
+    lon2 = deg_to_rad(lon2)
+    lat3 = deg_to_rad(lat3)
+    lon3 = deg_to_rad(lon3)
+
+    # 각도 계산
+    a = haversine(lat1, lon1, lat2, lon2)
+    b = haversine(lat2, lon2, lat3, lon3)
+    c = haversine(lat1, lon1, lat3, lon3)
+
+    # 코사인 법칙을 사용하여 각도를 구함
+    angle = math.acos((math.cos(a) - math.cos(b) * math.cos(c)) / (math.sin(b) * math.sin(c)))
+
+    return angle
+
 
 # 위도, 경도 정보로 도로 위치를 반환하는 함수
 def request_road_data(latitude: float, longitude: float):
@@ -94,14 +120,13 @@ def find_nearest_intersection(lat, lon):
     return node_location
 
 if __name__ == "__main__":
-    '''
-    with open('sample.gpx', 'r') as f:
+    with open('sample2.gpx', 'r') as f:
         gpx = gpxpy.parse(f)
     
     extract_track_data(gpx)
-    '''
 
     print_road_data(request_road_data(37.57034709741047, 126.97866257296211))
 
     intersection = find_nearest_intersection(37.57034709741047, 126.97866257296211)
     print(f"가장 가까운 교차로 위치: {intersection}")
+
