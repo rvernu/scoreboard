@@ -122,17 +122,21 @@ def detect_wrong_intersection(points):
     pairs = []
     for end in range(len(on_intersections)):
         if on_intersections[end]:
-            if on_intersections[end].get('mapCtptIntId') != last:
-                if start != end & on_intersections[start] is not None:
-                    pairs.append((start, end))
+            if on_intersections[end].get('itstId') != last:
+                if start != end and (on_intersections[start] is not None):
+                    pairs.append([start, end])
                 start = end
-                last = on_intersections[end].get('mapCtptIntId')
+                last = on_intersections[end].get('itstId')
+        elif last:
+            if start != end and (on_intersections[start] is not None):
+                pairs.append([start, end])
+            start = end
+            last = None
 
     result = []
     for pair in pairs:
         if not is_turncorrectly(points[pair[0]:pair[1]], velocity_threshold=10):
             result.append(pair)
-
     return result
 
 
@@ -151,9 +155,6 @@ def is_turncorrectly(gps_datas, velocity_threshold=15, angle_threshold=45): # km
 
 
 if __name__ == "__main__":
-    intersection = find_nearest_intersection(37.50292, 127.0427)
-    print(f"가장 가까운 교차로 위치: {intersection}")
-
     class GPSData:
         def __init__(self, latitude, longitude, timestamp):
             self.latitude = latitude
@@ -170,6 +171,6 @@ if __name__ == "__main__":
         GPSData(37.57037237795481, 126.98165659827269, 6)
     ]
 
-    detect_wrong_intersection(gps_datas)
+    print(detect_wrong_intersection(gps_datas))
 
     # print(correct_coords(gps_datas))
