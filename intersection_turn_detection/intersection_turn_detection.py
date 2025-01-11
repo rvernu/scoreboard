@@ -148,7 +148,7 @@ def is_turncorrectly(gps_datas, velocity_threshold=15, angle_threshold=45): # km
     result = 0
     for datas in list(zip(mean_velocities, angles)):
         if datas[0] >= velocity_threshold:
-            result += angles
+            result += datas[1]
 
     return abs(result) <= angle_threshold
 
