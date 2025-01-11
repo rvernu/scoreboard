@@ -125,11 +125,8 @@ if __name__ == "__main__":
     
     extract_track_data(gpx)
 
-<<<<<<< HEAD
-    # print_road_data(request_road_data(37.57034709741047, 126.97866257296211))
-=======
     print_road_data(request_road_data(37.57034709741047, 126.97866257296211))
 
     intersection = find_nearest_intersection(37.57034709741047, 126.97866257296211)
     print(f"가장 가까운 교차로 위치: {intersection}")
->>>>>>> 71c7efbe5dabfad864e75d09dd68d5c0567db8f0
+
