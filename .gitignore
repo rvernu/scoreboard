@@ -2,4 +2,3 @@ __pycache__/
 
 # virtual env path
 uvenv/
-tmp/
