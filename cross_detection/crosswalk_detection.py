@@ -24,9 +24,9 @@ stride = int(model.stride.max())
 net = cv2.dnn.readNetFromDarknet('weights/yolov4-ANPR.cfg', 'weights/yolov4-ANPR.weights')
 
 def is_crosswalk(data):
-    if data is np.ndarray:
+    if isinstance(data, np.ndarray):
         return check_crosswalk(data)
-    elif data is str:
+    elif isinstance(data, str):
         img = cv2.imread(data)
         return check_crosswalk(img)
     else:
@@ -62,6 +62,4 @@ def check_crosswalk(img):
     return False
 
 if __name__ == "__main__":
-    print(is_crosswalk("test.jpg"))
-    print(is_crosswalk("test2.webp"))
-    print(is_crosswalk("test3.jpg"))
+    print(is_crosswalk("../tmp/test1.jpg"))

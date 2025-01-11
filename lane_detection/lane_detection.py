@@ -11,9 +11,9 @@ use_gpu = False
 lane_detector = UltrafastLaneDetector(model_path, model_type, use_gpu)
 
 def is_rightmost(data):
-    if data is np.ndarray:
+    if isinstance(data, np.ndarray):
         return check_rightmost(data)
-    elif data is str:
+    elif isinstance(data, str):
         img = cv2.imread(data)
         return check_rightmost(img)
     else:

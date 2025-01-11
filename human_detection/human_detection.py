@@ -13,9 +13,9 @@ model = torch.load('./weights/best.pt', map_location='cpu')['model'].float()
 model.eval()
 
 def is_human(data, x_limit, y_limit):
-    if data is np.ndarray:
+    if isinstance(data, np.ndarray):
         return check_human(data, x_limit, y_limit)
-    elif data is str:
+    elif isinstance(data, str):
         img = cv2.imread(data)
         return check_human(img, x_limit, y_limit)
     else:
