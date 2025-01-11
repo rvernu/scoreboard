@@ -1,14 +1,13 @@
 import os
 import random
 import shutil
-import time
 
-from flask import Blueprint, render_template, request
-from werkzeug.utils import secure_filename
+from flask import Blueprint, request
 
 import cross_detection
 import human_detection
 import lane_detection
+from intersection_turn_detection.intersection_turn_detection import detect_wrong_intersection
 
 data_route = Blueprint('data', __name__, url_prefix='/data')
 
@@ -88,6 +87,9 @@ def start():
 def end():
     try:
         route_id = request.form['route_id']
+
+        wrong_intersection = detect_wrong_intersection(route_gps[route_id])
+
         shutil.rmtree(f'./tmp/{route_id}')
         del route_count[route_id]
         del route_gps[route_id]

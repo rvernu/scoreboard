@@ -1,7 +1,6 @@
-import os
+import sys
 
 from app import create_app
-import sys
 
 sys.path.append("./cross_detection/")
 sys.path.append("./human_detection/")
