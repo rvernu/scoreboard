@@ -142,6 +142,9 @@ def detect_wrong_intersection(points):
 
 # 회전이 올바른지를 탐지
 def is_turncorrectly(gps_datas, velocity_threshold=15, angle_threshold=45): # km/h, degree
+    if len(gps_datas) <= 2:
+        return True
+
     velocities = [calculate_speed(coord_datas) for coord_datas in list(zip(gps_datas, gps_datas[1:]))]
     mean_velocities = [(velocity_datas[0] + velocity_datas[1])/2 for velocity_datas in list(zip(velocities, velocities[1:]))]
     angles = [calculate_angle(coord_datas) for coord_datas in list(zip(gps_datas, gps_datas[1:], gps_datas[2:]))]
@@ -151,7 +154,7 @@ def is_turncorrectly(gps_datas, velocity_threshold=15, angle_threshold=45): # km
         if datas[0] >= velocity_threshold:
             result += angles
 
-    return abs(result) >= angle_threshold
+    return abs(result) <= angle_threshold
 
 
 if __name__ == "__main__":
