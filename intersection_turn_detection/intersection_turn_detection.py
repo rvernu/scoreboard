@@ -107,13 +107,33 @@ def calculate_angle(points):
     return angle_deg - 180
 
 # 급격한 가속도를 탐지
-def detect_rapid_acceleration(points):
-    REF = 5
-    speed = [calculate_speed([points[i], points[i + 1]]) for i in range(len(points) - 1)]
-    acceleration = [(speed[i] - speed[i - 1]) / ((points[i].timestamp - points[i-1].timestamp)/3600) for i in range(1, len(speed))]
+# def detect_rapid_acceleration(points):
+#     REF = 5
+#     speed = [calculate_speed([points[i], points[i + 1]]) for i in range(len(points) - 1)]
+#     acceleration = [(speed[i] - speed[i - 1]) / ((points[i].timestamp - points[i-1].timestamp)/3600) for i in range(1, len(speed))]
+#
+#     rapid_acceleration = [points[i] for i in range(1, len(acceleration)) if acceleration[i] > REF]
+#     return rapid_acceleration
 
-    rapid_acceleration = [points[i] for i in range(1, len(acceleration)) if acceleration[i] > REF]
-    return rapid_acceleration
+def detect_wrong_intersection(points):
+    on_intersections = [find_nearest_intersection(point.latitude, point.longitude) for point in points]
+    start, end = 0, 0
+    last = None
+    pairs = []
+    for end in range(len(on_intersections)):
+        if on_intersections[end].get('mapCtptIntId') != last:
+            if start != end & on_intersections[start] is not None:
+                pairs.append((start, end))
+            start = end
+            last = on_intersections[end].get('mapCtptIntId')
+
+    result = []
+    for pair in pairs:
+        if not is_turncorrectly(points[pair[0]:pair[1]], velocity_threshold=10):
+            result.append(pair)
+
+    return result
+
 
 # 회전이 올바른지를 탐지
 def is_turncorrectly(gps_datas, velocity_threshold=15, angle_threshold=45): # km/h, degree
@@ -128,9 +148,6 @@ def is_turncorrectly(gps_datas, velocity_threshold=15, angle_threshold=45): # km
 
     return abs(result) >= angle_threshold
 
-# 각 점에 대해 가장 가까운 교차점 탐지
-def detect_on_intersection(points):
-    return [find_nearest_intersection(point.latitude, point.longitude) for point in points]
 
 if __name__ == "__main__":
     intersection = find_nearest_intersection(37.50292, 127.0427)
