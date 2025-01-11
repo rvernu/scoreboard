@@ -115,9 +115,19 @@ def end():
     try:
         route_id = request.form['route_id']
 
+        score = 100
+        drive_log = []
         wrong_intersection = detect_wrong_intersection(route_gps[route_id])
-        # TODO 주위사람 감속 / 횡단보도 감속 확인
-        # TODO 차선 결과 반영
+        
+        # 차선 우측 통행 결과
+        for timestamp in route_lane[route_id]:
+            score -= 5
+            drive_log.append()
+        
+        # TODO: timestamp -> accurate loc
+        
+        # 주위사람 감속 / 횡단보도 감속 확인
+        
 
         shutil.rmtree(f'./tmp/{route_id}')
         del route_count[route_id]

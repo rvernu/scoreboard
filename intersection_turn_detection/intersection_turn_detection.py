@@ -5,7 +5,7 @@ import requests
 
 def correct_coords(coordinates):
     url = "https://api.mapbox.com/matching/v5/mapbox/driving"
-    access_token = "pk.eyJ1IjoiaHl1bnNlb25nMzAyMCIsImEiOiJjbTVzYWhpMngwanZ0MmpvYXZudTg1b2t4In0.DrAUsAGLpbkhSqUo2PgtZA"
+    access_token = "pk.eyJ1IjoiaHl1bnNlb25nMzAyMCIsImEiOiJjbTVzbGc4d2wwa2VpMmtxeDhmZDdtMms5In0.DKZrscTW4O3cvF0MI9L3Fw"
 
     coordinate_list = [f"{coordinate.longitude},{coordinate.latitude}" for coordinate in coordinates]
     formatted_coords = ";".join(coordinate_list)
@@ -158,6 +158,41 @@ def is_turncorrectly(gps_datas, velocity_threshold=15, angle_threshold=45): # km
 
     return abs(result) <= angle_threshold
 
+# 리스트를 앞 뒤가 일부 겹치게 자르기
+def split_list_overlap(input_list, chunk_size=100, overlap=5):
+    if chunk_size <= overlap:
+        raise ValueError("chunk_size must be greater than overlap")
+
+    chunks = []
+    start = 0
+    while start < len(input_list):
+        end = start + chunk_size
+        chunks.append(input_list[start:end])
+        start += chunk_size - overlap
+
+    return chunks
+
+# 유저의 경로를 바탕으로 완벽히 정확한 경로를 반환
+# TODO: 시간 정보 포함하기
+def get_accurate_path(gps_datas, overlap=5):
+    result = []
+    
+    for path_chunk in split_list_overlap(gps_datas):
+        corrected_coords = correct_coords(path_chunk)
+        if len(result) >= overlap and len(corrected_coords) >= overlap:
+            overlap1 = result[-overlap:]
+            overlap2 = corrected_coords[:overlap]
+            
+            averaged_overlap = [(x + y) / 2 for x, y in zip(overlap1, overlap2)]
+            
+            merged_list = result[:-overlap] + averaged_overlap + corrected_coords[overlap:]
+            result = merged_list
+        else:
+            result.append(corrected_coords)
+    
+    result = result[:len(gps_datas)] # 혹시 예상하지 못한 길이 추가가 있다면 미연에 방지. 어차피 마지막 몇 개는 도착지점 부근이므로 크게 상관 없음
+    timestamps = [datas.timestamp for datas in gps_datas]
+    return list(zip(result, timestamps))
 
 if __name__ == "__main__":
     class GPSData:
@@ -174,6 +209,10 @@ if __name__ == "__main__":
         GPSData(37.570397343049386, 126.98290740767071, 4),
         GPSData(37.570397314617075, 126.98271214462073, 5)
     ]
+
+    # print(correct_coords(gps_data_straight))
+
+    '''
     print(detect_wrong_intersection(gps_data_straight))
 
     gps_data_curve = [
@@ -184,5 +223,6 @@ if __name__ == "__main__":
         GPSData(37.570397314617075, 126.98271214462073, 4)
     ]
     print(detect_wrong_intersection(gps_data_curve))
-
+    '''
+    
     # print(correct_coords(gps_datas))
