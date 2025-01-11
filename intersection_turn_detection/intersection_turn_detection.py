@@ -124,6 +124,18 @@ def detect_rapid_acceleration(points):
     rapid_acceleration = [points[i] for i in range(1, len(acceleration)) if acceleration[i] > REF]
     return rapid_acceleration
 
+# 회전이 올바른지를 탐지
+def is_turncorrectly(gps_datas, velocity_threshold=15, angle_threshold=45): # km/h, degree
+    velocities = [calculate_speed(coord_datas) for coord_datas in list(zip(gps_datas, gps_datas[1:]))]
+    mean_velocities = [(velocity_datas[0] + velocity_datas[1])/2 for velocity_datas in list(zip(velocities, velocities[1:]))]
+    angles = [calculate_angle(coord_datas) for coord_datas in list(zip(gps_datas, gps_datas[1:], gps_datas[2:]))]
+
+    result = 0
+    for datas in list(zip(mean_velocities, angles)):
+        if datas[0] >= velocity_threshold:
+            result += angles
+
+    return abs(result) >= angle_threshold
 
 if __name__ == "__main__":
     intersection = find_nearest_intersection(37.50292, 127.0427)
@@ -144,11 +156,5 @@ if __name__ == "__main__":
         GPSData(-117.17314, 32.71259, 5),
         GPSData(-117.17334, 32.71254, 6)
     ]
-
-    velocities = [calculate_speed(coord_datas) for coord_datas in list(zip(gps_datas, gps_datas[1:]))]
-    angles = [calculate_angle(coord_datas) for coord_datas in list(zip(gps_datas, gps_datas[1:], gps_datas[2:]))]
-
-    print(velocities)
-    print(angles)
 
     # print(correct_coords(gps_datas))
