@@ -1,16 +1,6 @@
 import json
-
-import requests
-
-import gpxpy
-import gpxpy.gpx
-
 import math
-from datetime import timedelta
-
-import osmnx as ox
-from geopy.distance import geodesic
-from scipy.spatial import KDTree
+import requests
 
 
 def correct_coords(coordinates):
@@ -32,7 +22,7 @@ def correct_coords(coordinates):
 
     if response.status_code == 200:
         tracepoints = response.json()["tracepoints"]
-        
+
         result = []
         for tracepoint in tracepoints:
             if tracepoint["alternatives_count"] == 0:
@@ -48,24 +38,24 @@ intersections = json.load(open('crossroadMapInfo.json', 'r', encoding='utf-8'))
 # 위도, 경도를 하버사인 공식을 이용해서 거리로 변환
 def haversine(lat1, lon1, lat2, lon2):
     R = 6371
-    
+
     lat1 = math.radians(lat1)
     lon1 = math.radians(lon1)
     lat2 = math.radians(lat2)
     lon2 = math.radians(lon2)
-    
+
     delta_lat = lat2 - lat1
     delta_lon = lon2 - lon1
-    
+
     a = math.sin(delta_lat / 2) ** 2 + math.cos(lat1) * math.cos(lat2) * math.sin(delta_lon / 2) ** 2
     c = 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a))
-    
+
     distance = R * c
     return distance
 
 # 가장 가까운 교차점을 탐색
 def find_nearest_intersection(lat, lon):
-    min_distance = 1000000
+    min_distance = 50/1000  # 50m
     nearest_intersection = None
 
     for intersection in intersections:
@@ -74,7 +64,8 @@ def find_nearest_intersection(lat, lon):
             min_distance = distance
             nearest_intersection = intersection
 
-    return nearest_intersection
+    return nearest_intersection if nearest_intersection != 5/1000 else None
+
 
 # 수평경로와 수직경로, 시간차를 이용해서 속도를 계산
 def calculate_speed(points):
@@ -119,7 +110,7 @@ def calculate_angle(points):
 def detect_rapid_acceleration(points):
     REF = 5
     speed = [calculate_speed([points[i], points[i + 1]]) for i in range(len(points) - 1)]
-    acceleration = [(speed[i] - speed[i - 1]) / (points[i].timestamp - points[i-1].timestamp) for i in range(1, len(speed))]
+    acceleration = [(speed[i] - speed[i - 1]) / ((points[i].timestamp - points[i-1].timestamp)/3600) for i in range(1, len(speed))]
 
     rapid_acceleration = [points[i] for i in range(1, len(acceleration)) if acceleration[i] > REF]
     return rapid_acceleration
@@ -136,6 +127,10 @@ def is_turncorrectly(gps_datas, velocity_threshold=15, angle_threshold=45): # km
             result += angles
 
     return abs(result) >= angle_threshold
+
+# 각 점에 대해 가장 가까운 교차점 탐지
+def detect_on_intersection(points):
+    return [find_nearest_intersection(point.latitude, point.longitude) for point in points]
 
 if __name__ == "__main__":
     intersection = find_nearest_intersection(37.50292, 127.0427)
