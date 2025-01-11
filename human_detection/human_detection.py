@@ -1,3 +1,5 @@
+# https://github.com/jahongir7174/YOLOv8-human?tab=readme-ov-file
+
 import torch
 import yaml
 import cv2
@@ -6,62 +8,64 @@ import numpy as np
 from nets import nn
 from utils import util
 
-def non_max_suppression(prediction, conf_thres=0.25, nms_thres=0.45, classes=None, agnostic=False, multi_label=False, max_det=300):
-    # prediction: Tensor of shape (batch_size, num_predictions, 6) where 6 are [x, y, width, height, confidence, class]
-    output = [None] * prediction.shape[0]
-    for i, pred in enumerate(prediction):
-        # Filter predictions by confidence
-        pred = pred[pred[:, 4] > conf_thres]
-        
-        if len(pred) == 0:
-            continue
-
-        # Get class labels
-        if classes is not None:
-            pred = pred[(pred[:, 5:6] == classes).any(1)]
-
-        # Perform non-max suppression for each class
-        boxes = pred[:, :4]
-        scores = pred[:, 4] * pred[:, 5]  # confidence * class score
-        labels = pred[:, 5]
-
-        keep = torch.ops.torchvision.nms(boxes, scores, nms_thres)
-        output[i] = torch.cat((boxes[keep], scores[keep].unsqueeze(1), labels[keep].unsqueeze(1)), 1)
-
-    return output
-
 @torch.no_grad()
 def is_human(path):
     # Load model
-    model = torch.load('./weights/best.pt', map_location='cpu')['model'].float().eval()
-    
-    # Preprocess image
+    model = torch.load('./weights/best.pt', map_location='cpu')['model'].float()
+    model.eval()
+    input_size = 640
+
     image = cv2.imread(path)
     shape = image.shape[:2]
-    r = 640 / max(shape)  # Resize ratio
-    new_shape = (int(shape[1] * r), int(shape[0] * r))
-    image = cv2.resize(image, new_shape, interpolation=cv2.INTER_LINEAR)
-    
-    # Padding to 640x640
-    pad_w = (640 - new_shape[0]) % 32
-    pad_h = (640 - new_shape[1]) % 32
-    image = cv2.copyMakeBorder(image, 0, pad_h, 0, pad_w, cv2.BORDER_CONSTANT)
 
-    # Convert to RGB, normalize, and prepare tensor
-    x = image[..., ::-1].transpose(2, 0, 1)  # BGR to RGB and transpose to CHW
-    x = np.ascontiguousarray(x)  # Ensure contiguous memory layout
-    x = torch.from_numpy(x).float() / 255.0
-    x = x.unsqueeze(0)  # Add batch dimension
-    
+    r = input_size / max(shape[0], shape[1])
+    if r != 1:
+        resample = cv2.INTER_LINEAR if r > 1 else cv2.INTER_AREA
+        image = cv2.resize(image, dsize=(int(shape[1] * r), int(shape[0] * r)), interpolation=resample)
+
+    height, width = image.shape[:2]
+
+    r = min(1.0, input_size / height, input_size / width)
+
+    pad = int(round(width * r)), int(round(height * r))
+    w = np.mod((input_size - pad[0]), 32) / 2
+    h = np.mod((input_size - pad[1]), 32) / 2
+
+    if (width, height) != pad:
+        image = cv2.resize(image, pad, interpolation=cv2.INTER_LINEAR)
+
+    top, bottom = int(round(h - 0.1)), int(round(h + 0.1))
+    left, right = int(round(w - 0.1)), int(round(w + 0.1))
+    image = cv2.copyMakeBorder(image, top, bottom, left, right, cv2.BORDER_CONSTANT)
+
+    # Convert HWC to CHW, BGR to RGB
+    x = image.transpose((2, 0, 1))[::-1]  # BGR to RGB
+    x = np.ascontiguousarray(x)
+    x = torch.from_numpy(x)
+    x = x.unsqueeze(dim=0)
+
+    # Don't use CUDA, use CPU
+    x = x.float()  # Change to float32 as we're on CPU
+    x /= 255  # Normalize
+
     # Inference
     outputs = model(x)
     
     # NMS
-    outputs = non_max_suppression(outputs, 0.25, 0.7)
+    outputs = util.non_max_suppression(outputs, 0.25, 0.7)
     for output in outputs:
-        if len(output) > 0:  # If there are detections
+        output[:, [0, 2]] -= w  # x padding
+        output[:, [1, 3]] -= h  # y padding
+        output[:, :4] /= min(height / shape[0], width / shape[1])
+        
+        output[:, 0].clamp_(0, shape[1])  # x1
+        output[:, 1].clamp_(0, shape[0])  # y1
+        output[:, 2].clamp_(0, shape[1])  # x2
+        output[:, 3].clamp_(0, shape[0])  # y2
+
+        if len(output) != 0:
             return True
-    
+        
     return False
 
 def profile(params, input_size=640):
@@ -81,4 +85,4 @@ if __name__ == "__main__":
     util.setup_multi_processes()
 
     profile(params)
-    print(is_human('test.jpg'))
+    print(is_human('test3.jpg'))
