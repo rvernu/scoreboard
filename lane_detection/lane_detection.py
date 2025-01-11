@@ -6,7 +6,7 @@ model_path = "models/tusimple_18.pth"
 model_type = ModelType.TUSIMPLE
 use_gpu = False
 
-image_path = "input2.jpg"
+image_path = "test2.jpg"
 
 # Initialize lane detection model
 lane_detector = UltrafastLaneDetector(model_path, model_type, use_gpu)
@@ -24,4 +24,4 @@ cv2.imshow("Detected lanes", output_img)
 cv2.waitKey(0)
 '''
 
-cv2.imwrite("output3.jpg", output_img)
+cv2.imwrite("output.jpg", output_img)
