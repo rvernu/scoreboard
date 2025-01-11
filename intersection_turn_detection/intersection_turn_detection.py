@@ -132,7 +132,7 @@ def detect_wrong_intersection(points):
                 pairs.append([start, end])
             start = end
             last = None
-
+    
     result = []
     for pair in pairs:
         if not is_turncorrectly(points[pair[0]:pair[1]], velocity_threshold=10):
@@ -164,16 +164,26 @@ if __name__ == "__main__":
             self.longitude = longitude
             self.timestamp = timestamp
 
-    gps_datas = [ # [lat,lng,sec]
-        GPSData(37.56967206298715, 126.98305472675337, 0),
-        GPSData(37.56997165247484, 126.98311408642932, 1),
-        GPSData(37.5702734944059, 126.98317344607365, 2),
-        GPSData(37.57035681947376, 126.98305457161894, 3),
-        GPSData(37.570379288071585, 126.98266687040835, 4),
-        GPSData(37.57036571048112, 126.98224521872721, 5),
-        GPSData(37.57037237795481, 126.98165659827269, 6)
+    # TODO: 처음부터 교차로로 시작하는 경우를 고려하기
+
+    gps_data_straight = [ # [lat,lng,sec]
+        GPSData(37.56999868840013, 126.98315652859004, 0),
+        GPSData(37.57016763148278, 126.98320176879615, 1),
+        GPSData(37.57033206353528, 126.98320456176337, 2),
+        GPSData(37.57039286172259, 126.98307154284846, 3),
+        GPSData(37.570397343049386, 126.98290740767071, 4),
+        GPSData(37.570397314617075, 126.98271214462073, 5)
     ]
 
-    print(detect_wrong_intersection(gps_datas))
+    gps_data_curve = [
+        GPSData(37.56999868840013, 126.98315652859004, 0),
+        GPSData(37.57017662973051, 126.98311969993564, 1),
+        GPSData(37.57024869311873, 126.98300648792207, 2),
+        GPSData(37.57033877261069, 126.98286780249536, 3),
+        GPSData(37.570397314617075, 126.98271214462073, 4)
+    ]
+
+    print(detect_wrong_intersection(gps_data_straight))
+    print(detect_wrong_intersection(gps_data_curve))
 
     # print(correct_coords(gps_datas))
