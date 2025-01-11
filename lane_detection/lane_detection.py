@@ -3,7 +3,7 @@ import numpy as np
 
 from ultrafastLaneDetector import UltrafastLaneDetector, ModelType
 
-model_path = "weights/tusimple_18.pth"
+model_path = "lane_detection/weights/tusimple_18.pth"
 model_type = ModelType.TUSIMPLE
 use_gpu = False
 

@@ -6,10 +6,10 @@ import cv2
 import numpy as np
 
 # from nets import nn
-from utils import util
+from human_utils import util
 
 # Load model
-model = torch.load('./weights/best.pt', map_location='cpu')['model'].float()
+model = torch.load('human_detection/weights/best.pt', map_location='cpu')['model'].float()
 model.eval()
 
 def is_human(data, x_limit, y_limit):

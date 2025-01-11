@@ -6,7 +6,7 @@ from utils.datasets import letterbox
 from utils.general import non_max_suppression, scale_coords
 
 # 횡단보도,신호등 모델
-MODEL_PATH = 'weights/best.pt'
+MODEL_PATH = 'cross_detection/weights/best.pt'
 
 img_size = 640
 conf_thres = 0.5  # confidence threshold
@@ -21,7 +21,7 @@ model = ckpt['ema' if ckpt.get('ema') else 'model'].float().fuse().eval()
 class_names = ['crosswalk', 'redlight', 'greenlight'] # model.names
 stride = int(model.stride.max())
 
-net = cv2.dnn.readNetFromDarknet('weights/yolov4-ANPR.cfg', 'weights/yolov4-ANPR.weights')
+net = cv2.dnn.readNetFromDarknet('cross_detection/weights/yolov4-ANPR.cfg', 'cross_detection/weights/yolov4-ANPR.weights')
 
 def is_crosswalk(data):
     if isinstance(data, np.ndarray):
