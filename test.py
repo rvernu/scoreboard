@@ -1,37 +1,62 @@
-import json
-
 import requests
 
-import gpxpy
-import gpxpy.gpx
+def correct_coords(coordinates):
+    url = "https://api.mapbox.com/matching/v5/mapbox/driving"
+    access_token = "pk.eyJ1IjoiaHl1bnNlb25nMzAyMCIsImEiOiJjbTVzYWhpMngwanZ0MmpvYXZudTg1b2t4In0.DrAUsAGLpbkhSqUo2PgtZA"
+
+    coordinate_list = [f"{lon},{lat}" for lon, lat in coordinates]
+    formatted_coords = ";".join(coordinate_list)
+
+    data = {
+        'coordinates': formatted_coords
+    }
+
+    headers = {
+        'Content-Type': 'application/x-www-form-urlencoded'
+    }
+
+    response = requests.post(f"{url}?access_token={access_token}", data=data, headers=headers)
+
+    if response.status_code == 200:
+        tracepoints = response.json()["tracepoints"]
+        
+        result = []
+        for tracepoint in tracepoints:
+            if tracepoint["alternatives_count"] == 0:
+                result.append(tracepoint["location"])
+
+        return result
+    else:
+        raise Exception(f"Error: {response.status_code}, {response.text}")
 
 import math
-from datetime import timedelta
 
+def calculate_angle(points):
+    point1, point2, point3 = points
 
-import osmnx as ox
-from geopy.distance import geodesic
+    lat1, lon1 = math.radians(point1[0]), math.radians(point1[1])
+    lat2, lon2 = math.radians(point2[0]), math.radians(point2[1])
+    lat3, lon3 = math.radians(point3[0]), math.radians(point3[1])
 
-# 트랙 데이터 출력
-# TODO: 데이터를 pandas 형태로 반환
-def extract_track_data(gpx_data):
-    for track in gpx_data.tracks:
-        for segment in track.segments:
-            prev_point = None
-            i = 0
-            for point in segment.points:
-                latitude = point.latitude
-                longitude = point.longitude
-                elevation = point.elevation
-                time = point.time
-                
-                # 각 트랙 포인트 출력
-                print(f"Point {i}: Latitude: {latitude}, Longitude: {longitude}, Elevation: {elevation}, Time: {time}")
-                if prev_point != None:
-                    print(f"Speed from {i-1} -> {i}: {calculate_speed(prev_point, point)} km/h")
-                
-                prev_point = point
-                i += 1
+    vec1_lat = lat1 - lat2
+    vec1_lon = lon1 - lon2
+    vec2_lat = lat3 - lat2
+    vec2_lon = lon3 - lon2
+
+    dot_product = (vec1_lat * vec2_lat) + (vec1_lon * vec2_lon)
+    magnitude1 = math.sqrt(vec1_lat**2 + vec1_lon**2)
+    magnitude2 = math.sqrt(vec2_lat**2 + vec2_lon**2)
+
+    if magnitude1 == 0 or magnitude2 == 0:
+        raise ValueError("Magnitude of one of the vectors is zero. Points must be distinct.")
+
+    cos_angle = dot_product / (magnitude1 * magnitude2)
+    cos_angle = max(-1.0, min(1.0, cos_angle))
+
+    angle_rad = math.acos(cos_angle)
+    angle_deg = math.degrees(angle_rad)
+
+    return angle_deg - 180
 
 # 위도, 경도를 하버사인 공식을 이용해서 거리로 변환
 def haversine(lat1, lon1, lat2, lon2):
@@ -52,81 +77,31 @@ def haversine(lat1, lon1, lat2, lon2):
     return distance
 
 # 수평경로와 수직경로, 시간차를 이용해서 속도를 계산
-def calculate_speed(point1, point2):
-    latlng_distance = haversine(point1.latitude, point1.longitude, point2.latitude, point2.longitude) # km
+def calculate_speed(points):
+    point1, point2 = points
+    latlng_distance = haversine(point1[0], point1[1], point2[0], point2[1]) # km
     # final_distance = math.sqrt(latlng_distance ** 2 + ((point1.elevation - point2.elevation) / 1000) ** 2) # km
-    time = (point2.time - point1.time).total_seconds() / 3600 # hour
+    time = float(point2[2] - point1[2]) / 3600 # hour
     if time > 0:
         return round(latlng_distance / time, 4) # km/h
     else:
         return 0
 
-def deg_to_rad(degrees):
-    return degrees * math.pi / 180.0
-
-def calculate_angle(point1, point2, point3):
-    lat1, lon1 = point1.latitude, point1.longitude
-    lat2, lon2 = point2.latitude, point2.longitude
-    lat3, lon3 = point3.latitude, point3.longitude
-    
-    lat1 = deg_to_rad(lat1)
-    lon1 = deg_to_rad(lon1)
-    lat2 = deg_to_rad(lat2)
-    lon2 = deg_to_rad(lon2)
-    lat3 = deg_to_rad(lat3)
-    lon3 = deg_to_rad(lon3)
-
-    # 각도 계산
-    a = haversine(lat1, lon1, lat2, lon2)
-    b = haversine(lat2, lon2, lat3, lon3)
-    c = haversine(lat1, lon1, lat3, lon3)
-
-    # 코사인 법칙을 사용하여 각도를 구함
-    angle = math.acos((math.cos(a) - math.cos(b) * math.cos(c)) / (math.sin(b) * math.sin(c)))
-
-    return angle
-
-
-# 위도, 경도 정보로 도로 위치를 반환하는 함수
-def request_road_data(latitude: float, longitude: float):
-    url = "http://overpass-api.de/api/interpreter"
-
-    # Overpass QL 쿼리, 반경 20미터 내의 모든 도로 정보를 가져온다
-    overpass_query = f"""
-    [out:json];
-    way["highway"](around:20, {latitude}, {longitude});
-    out body;
-    """
-
-    params = {
-        "data": overpass_query
-    }
-
-    response = requests.get(url, params=params)
-    return response.json()
-
-# TODO: pandas 정보로 변환하기
-def print_road_data(data):
-    for element in data['elements']:
-        if 'tags' in element and 'highway' in element['tags']:
-            print(f"도로 정보: {json.dumps(element, indent=4)}")
-            # print(f"도로 ID: {element['id']}, 도로 종류: {element['tags']['highway']}")
-            # print("도로 태그:", element['tags'])
-
-def find_nearest_intersection(lat, lon):
-    G = ox.graph_from_point((lat, lon), dist=50, network_type='drive')
-    nearest_node = ox.distance.nearest_nodes(G, lon, lat)
-    node_location = (G.nodes[nearest_node]['y'], G.nodes[nearest_node]['x'])
-    return node_location
-
 if __name__ == "__main__":
-    with open('sample2.gpx', 'r') as f:
-        gpx = gpxpy.parse(f)
-    
-    extract_track_data(gpx)
+    gps_datas = [ # [lat,lng,sec]
+        [-117.17282,32.71204,0],
+        [-117.17288,32.71225,1],
+        [-117.17293,32.71244,2],
+        [-117.17292,32.71256,3],
+        [-117.17298,32.712603,4],
+        [-117.17314,32.71259,5],
+        [-117.17334,32.71254,6]
+    ]
 
-    print_road_data(request_road_data(37.57034709741047, 126.97866257296211))
+    velocities = [calculate_speed(coord_datas) for coord_datas in list(zip(gps_datas, gps_datas[1:]))]
+    angles = [calculate_angle(coord_datas) for coord_datas in list(zip(gps_datas, gps_datas[1:], gps_datas[2:]))]
 
-    intersection = find_nearest_intersection(37.57034709741047, 126.97866257296211)
-    print(f"가장 가까운 교차로 위치: {intersection}")
+    print(velocities)
+    print(angles)
 
+    # print(correct_coords(gps_datas))
