@@ -180,6 +180,13 @@ def get_accurate_path(gps_datas, overlap=5):
     timestamps = [datas.timestamp for datas in gps_datas]
     return list(zip(result, timestamps))
 
+# timestamp로 위치를 찾는 함수
+def get_loc_from_timestamp(gps_datas, timestamp):
+    for gps_data in gps_datas:
+        if gps_data.timestamp == timestamp:
+            return gps_data
+    return None
+
 # 잘못된 횡단보도 이동을 감지
 def detect_wrong_cross(points, timestamps):
     # 연속한 timestamp 찾기(현재 간격 15초)
