@@ -62,4 +62,4 @@ def check_crosswalk(img):
     return False
 
 if __name__ == "__main__":
-    print(is_crosswalk("../tmp/test1.jpg"))
+    print(is_crosswalk("../tmp/test10.gif"))

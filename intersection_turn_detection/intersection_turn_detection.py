@@ -161,13 +161,13 @@ if __name__ == "__main__":
             self.timestamp = timestamp
 
     gps_datas = [ # [lat,lng,sec]
-        GPSData(-117.17282, 32.71204, 0),
-        GPSData(-117.17288, 32.71225, 1),
-        GPSData(-117.17293, 32.71244, 2),
-        GPSData(-117.17292, 32.71256, 3),
-        GPSData(-117.17298, 32.712603, 4),
-        GPSData(-117.17314, 32.71259, 5),
-        GPSData(-117.17334, 32.71254, 6)
+        GPSData(37.5626, 126.9848, 0),
+        GPSData(37.5627, 126.9847, 1),
+        GPSData(37.5627, 126.9847, 2),
+        GPSData(37.5627, 126.9847, 3),
+        GPSData(37.5627, 126.9847, 4),
+        GPSData(37.5627, 126.9847, 5),
+        GPSData(37.5627, 126.9846, 6)
     ]
 
     # print(correct_coords(gps_datas))
