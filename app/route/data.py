@@ -1,5 +1,6 @@
 import os
 import random
+import shutil
 import time
 
 from flask import Blueprint, render_template, request
@@ -64,7 +65,7 @@ def upload_gps():
         timestamp = request.form['timestamp']
 
         route_gps[route_id].append({'longitude': longitude, 'latitude': latitude, 'timestamp': timestamp})
-        return True
+        return "1"
     except Exception as e:
         print(e)
         return 'Error uploading gps'
@@ -87,10 +88,10 @@ def start():
 def end():
     try:
         route_id = request.form['route_id']
-        os.rmdir(f'./tmp/{route_id}')
+        shutil.rmtree(f'./tmp/{route_id}')
         del route_count[route_id]
         del route_gps[route_id]
-        return True  # TODO: 결과 반환
+        return "1"  # TODO: 결과 반환
     except Exception as e:
         print(e)
         return 'Error ending route'
