@@ -162,27 +162,25 @@ def split_list_overlap(input_list, chunk_size=100, overlap=5):
     return chunks
 
 # 유저의 경로를 바탕으로 완벽히 정확한 경로를 반환
-# TODO: 시간 정보 포함하기
 def get_accurate_path(gps_datas, overlap=5):
     result = []
     
-    for path_chunk in split_list_overlap(gps_datas):
+    for path_chunk in split_list_overlap(gps_datas, overlap=overlap):
         corrected_coords = correct_coords(path_chunk)
         if len(result) >= overlap and len(corrected_coords) >= overlap:
             overlap1 = result[-overlap:]
             overlap2 = corrected_coords[:overlap]
-            
-            averaged_overlap = [(x + y) / 2 for x, y in zip(overlap1, overlap2)]
-            
-            merged_list = result[:-overlap] + averaged_overlap + corrected_coords[overlap:]
-            result = merged_list
+
+            averaged_overlap = [[(x[0]+y[0])/2, (x[1]+y[1])/2] for x, y in zip(overlap1, overlap2)]
+            result = result[:-overlap] + averaged_overlap + corrected_coords[overlap:]
         else:
-            result.append(corrected_coords)
+            result += corrected_coords
     
     result = result[:len(gps_datas)] # 혹시 예상하지 못한 길이 추가가 있다면 미연에 방지. 어차피 마지막 몇 개는 도착지점 부근이므로 크게 상관 없음
     timestamps = [datas.timestamp for datas in gps_datas]
     return list(zip(result, timestamps))
 
+# 잘못된 횡단보도 이동을 감지
 def detect_wrong_cross(points, timestamps):
     # 연속한 timestamp 찾기(현재 간격 15초)
     # 연속한 timestamp가 있을 시 처음 타임스탬프 ~ 마지막 타임스탬프 + 10초동안 속도 확인
@@ -242,11 +240,10 @@ if __name__ == "__main__":
         GPSData(37.570397314617075, 126.98271214462073, 5)
     ]
 
-    # print(correct_coords(gps_data_straight))
-
+    # print(detect_wrong_intersection(gps_data_straight))
+    # print(get_accurate_path(gps_data_straight, 1))
+    
     '''
-    print(detect_wrong_intersection(gps_data_straight))
-
     gps_data_curve = [
         GPSData(37.56999868840013, 126.98315652859004, 0),
         GPSData(37.57017662973051, 126.98311969993564, 1),
@@ -256,5 +253,3 @@ if __name__ == "__main__":
     ]
     print(detect_wrong_intersection(gps_data_curve))
     '''
-    
-    # print(correct_coords(gps_datas))
