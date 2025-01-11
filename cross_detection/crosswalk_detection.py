@@ -18,7 +18,7 @@ agnostic_nms = False  # class-agnostic NMS
 device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
 ckpt = torch.load(MODEL_PATH, map_location=device)
 model = ckpt['ema' if ckpt.get('ema') else 'model'].float().fuse().eval()
-class_names = ['횡단보도', '빨간불', '초록불'] # model.names
+class_names = ['crosswalk', 'redlight', 'greenlight'] # model.names
 stride = int(model.stride.max())
 
 net = cv2.dnn.readNetFromDarknet('weights/yolov4-ANPR.cfg', 'weights/yolov4-ANPR.weights')

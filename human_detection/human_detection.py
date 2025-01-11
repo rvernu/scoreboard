@@ -8,11 +8,12 @@ import numpy as np
 # from nets import nn
 from utils import util
 
+# Load model
+model = torch.load('./weights/best.pt', map_location='cpu')['model'].float()
+model.eval()
+
 @torch.no_grad()
 def is_human(path, x_limit, y_limit):
-    # Load model
-    model = torch.load('./weights/best.pt', map_location='cpu')['model'].float()
-    model.eval()
     input_size = 640
 
     image = cv2.imread(path)
