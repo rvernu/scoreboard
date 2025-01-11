@@ -1,54 +1,43 @@
 import requests
 
-def get_turn_direction_osrm(start_coords, end_coords):
-    """
-    OSRM API를 사용하여 경로 계산 후 교차로에서 좌회전, 우회전, 유턴 정보 추출
-    
-    Parameters:
-    - start_coords: 출발 지점 (위도, 경도) 튜플
-    - end_coords: 도착 지점 (위도, 경도) 튜플
-    
-    Returns:
-    - 교차로에서 가능한 좌회전, 우회전, 유턴 정보를 포함한 리스트
-    """
-    
-    # OSRM API URL (OSRM Public API 사용)
-    url = "http://router.project-osrm.org/route/v1/driving"
-    
-    # 경로를 요청할 좌표 (start_coords, end_coords)
-    coordinates = f"{start_coords[1]},{start_coords[0]};{end_coords[1]},{end_coords[0]}"
-    
-    # 요청 URL 완성
-    request_url = f"{url}/{coordinates}?steps=true&alternatives=false&geometries=geojson"
-    
-    # API 요청
-    response = requests.get(request_url)
-    
-    if response.status_code != 200:
-        raise Exception(f"API 요청 실패: {response.status_code}")
-    
-    # 응답 데이터 분석
-    directions = response.json()
-    steps = directions['routes'][0]['legs'][0]['steps']
-    
-    # 회전 가능 여부를 기록할 리스트
-    turn_info = []
+def correct_coords(coordinates):
+    url = "https://api.mapbox.com/matching/v5/mapbox/driving"
+    access_token = "pk.eyJ1IjoiaHl1bnNlb25nMzAyMCIsImEiOiJjbTVzYWhpMngwanZ0MmpvYXZudTg1b2t4In0.DrAUsAGLpbkhSqUo2PgtZA"
 
-    for step in steps:
-        print(step)
-        instruction = step['instruction'].lower()  # 교차로 지시사항
-        if "turn right" in instruction:
-            turn_info.append("우회전 가능")
-        elif "turn left" in instruction:
-            turn_info.append("좌회전 가능")
-        elif "u-turn" in instruction:
-            turn_info.append("유턴 가능")
-    
-    return turn_info
+    coordinate_list = [f"{lon},{lat}" for lon, lat in coordinates]
+    formatted_coords = ";".join(coordinate_list)
 
-# 사용 예시
-start_coords = (37.7749, -122.4194)  # 샌프란시스코 (위도, 경도)
-end_coords = (37.8044, -122.2712)    # 오클랜드 (위도, 경도)
+    data = {
+        'coordinates': formatted_coords
+    }
 
-turn_directions = get_turn_direction_osrm(start_coords, end_coords)
-print(turn_directions)
+    headers = {
+        'Content-Type': 'application/x-www-form-urlencoded'
+    }
+
+    response = requests.post(f"{url}?access_token={access_token}", data=data, headers=headers)
+
+    if response.status_code == 200:
+        tracepoints = response.json()["tracepoints"]
+        
+        result = []
+        for tracepoint in tracepoints:
+            if tracepoint["alternatives_count"] == 0:
+                result.append(tracepoint["location"])
+
+        return result
+    else:
+        raise Exception(f"Error: {response.status_code}, {response.text}")
+
+if __name__ == "__main__":
+    coordinates = [
+        [-117.17282,32.71204],
+        [-117.17288,32.71225],
+        [-117.17293,32.71244],
+        [-117.17292,32.71256],
+        [-117.17298,32.712603],
+        [-117.17314,32.71259],
+        [-117.17334,32.71254]
+    ]
+
+    print(correct_coords(coordinates))
