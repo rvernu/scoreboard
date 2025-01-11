@@ -119,10 +119,12 @@ def end():
         drive_log = []
         # wrong_intersection = detect_wrong_intersection(route_gps[route_id])
         
+        accurate_path = gps_detection.get_accurate_path(route_gps[route_id]) # TODO: 이거 정확성 판별하기
+
         # 차선 우측 통행 결과
         for timestamp in route_lane[route_id]:
             score -= 5
-            drive_log.append(gps_detection.get_loc_from_timestamp(route_gps[route_id], timestamp))
+            drive_log.append([gps_detection.get_loc_from_timestamp(accurate_path, timestamp), "도로 우측 통행 감점 -5"])
         
         wrong_turns = gps_detection.detect_wrong_turn(route_gps[route_id])
         wrong_crosses = gps_detection.detect_wrong_cross(route_gps[route_id])
