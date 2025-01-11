@@ -7,7 +7,7 @@ from flask import Blueprint, request
 import cross_detection
 import human_detection
 import lane_detection
-from intersection_turn_detection.intersection_turn_detection import detect_wrong_intersection
+import gps_detection
 
 data_route = Blueprint('data', __name__, url_prefix='/data')
 
@@ -114,7 +114,7 @@ def start():
 def end():
     try:
         route_id = request.form['route_id']
-
+    
         score = 100
         drive_log = []
         wrong_intersection = detect_wrong_intersection(route_gps[route_id])
@@ -126,8 +126,10 @@ def end():
         
         # TODO: timestamp -> accurate loc
         
-        # 주위사람 감속 / 횡단보도 감속 확인
-        
+        wrong_turns = gps_detection.detect_wrong_turn(route_gps[route_id])
+        wrong_crosses = gps_detection.detect_wrong_cross(route_gps[route_id])
+        # TODO 주위사람 감속
+        # TODO 차선 결과 반영
 
         shutil.rmtree(f'./tmp/{route_id}')
         del route_count[route_id]

@@ -80,16 +80,6 @@ def check_human(img, x_limit, y_limit):
     
     return False
 
-'''
-def profile(params, input_size=640):
-    model = nn.yolo_v8_n(len(params['names']))
-    shape = (1, 3, input_size, input_size)
-
-    model.eval()
-    model(torch.zeros(shape))
-    params = sum(p.numel() for p in model.parameters())
-'''
-
 if __name__ == "__main__":
     '''
     with open('utils/args.yaml', errors='ignore') as f:
