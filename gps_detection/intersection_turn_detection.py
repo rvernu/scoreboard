@@ -195,7 +195,7 @@ def detect_wrong_cross(points, timestamps):
     # 속도가 기준보다 높은 때가 있으면 킥보드를 타고 횡단보도를 건넜다고 판단
 
     if len(timestamps) < 2:
-        return []
+        return [], []
 
     start = timestamps[0]
     last = timestamps[0]
@@ -240,7 +240,7 @@ def detect_wrong_human(points, timestamps):
     # 속도가 기준보다 높은 때가 있는 구간 / 전부 기준보다 낮은 구간
 
     if len(timestamps) < 2:
-        return []
+        return [], []
 
     start = timestamps[0]
     last = timestamps[0]
