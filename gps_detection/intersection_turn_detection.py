@@ -209,15 +209,18 @@ def detect_wrong_cross(points, timestamps):
     if start != last:
         pairs.append([start, last])
 
-    result = []
+    corrects = []
+    wrongs = []
     for pair in pairs:
         gps_datas = []
         for i in range(len(points)):
             if pair[0] <= timestamps[i] <= pair[1] + 10:
                 gps_datas.append(points[i])
         if not is_crosswalkcorrectly(gps_datas):
-            result.append(pair)
-    return result
+            wrongs.append(pair)
+        else:
+            corrects.append(pair)
+    return corrects, wrongs
 
 
 def is_crosswalkcorrectly(gps_datas, velocity_threshold=10): # km/h
