@@ -1,4 +1,4 @@
-# unrevr
+# scoreboard
 
 Repository for 2025 blackout hackathon
 
