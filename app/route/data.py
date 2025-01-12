@@ -130,8 +130,8 @@ def end():
             drive_log.append([gps_detection.get_loc_from_timestamp(accurate_path, timestamp), "도로 우측 통행 미숙 -5"])
         print('asdf')
         wrong_turns = gps_detection.detect_wrong_turn(route_gps[route_id])
-        correct_crosses, wrong_crosses = gps_detection.detect_wrong_cross(route_gps[route_id])
-        correct_human, wrong_human = gps_detection.detect_wrong_human(route_gps[route_id])
+        correct_crosses, wrong_crosses = gps_detection.detect_wrong_cross(route_gps[route_id], route_crosswalk[route_id])
+        correct_human, wrong_human = gps_detection.detect_wrong_human(route_gps[route_id], route_human[route_id])
         print('asdf')
         for wrong_turn in wrong_turns:
             score -= 5
