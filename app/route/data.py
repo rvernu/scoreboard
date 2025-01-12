@@ -105,6 +105,7 @@ def start():
         route_crosswalk[route_id] = []
         route_human[route_id] = []
         route_lane[route_id] = []
+        print(route_id)
         return {'route_id': route_id}
     except Exception as e:
         print(e)
@@ -119,18 +120,36 @@ def end():
         drive_log = []
         # wrong_intersection = detect_wrong_intersection(route_gps[route_id])
         
-        accurate_path = gps_detection.get_accurate_path(route_gps[route_id]) # TODO: 이거 정확성 판별하기
+        accurate_path = gps_detection.get_accurate_path(route_gps[route_id]) # TODO: 이거 정확성 판별하고 아니면 route_gps[route_id]로 바꾸기
 
         # 차선 우측 통행 결과
         for timestamp in route_lane[route_id]:
             score -= 5
-            drive_log.append([gps_detection.get_loc_from_timestamp(accurate_path, timestamp), "도로 우측 통행 감점 -5"])
+            drive_log.append([gps_detection.get_loc_from_timestamp(accurate_path, timestamp), "도로 우측 통행 미숙 -5"])
         
         wrong_turns = gps_detection.detect_wrong_turn(route_gps[route_id])
         wrong_crosses = gps_detection.detect_wrong_cross(route_gps[route_id])
         correct_human, wrong_human = gps_detection.detect_wrong_human(route_gps[route_id])
 
-        return "1"  # TODO: 결과 반환
+        for wrong_turn in wrong_turns:
+            score -= 5
+            drive_log.append([accurate_path[wrong_turn[0]:wrong_turn[1]], "올바르지 않은 좌/우회전 -5"])
+        
+        for wrong_cross in wrong_crosses:
+            score -= 5
+            drive_log.append([accurate_path[wrong_cross[0]:wrong_cross[1]], "횡단보도에서 킥보드 주행 -5"])
+
+        for correct_data in correct_human:
+            score += 3
+            drive_log.append([accurate_path[correct_data[0]:correct_data[1]], "주위에 사람이 있는 경우 감속 +3"])
+        
+        for wrong_data in wrong_human:
+            score -= 5
+            drive_log.append([accurate_path[wrong_data[0]:wrong_data[1]], "주위에 사람이 있는 경우 감속하지 않음 -5"])
+
+        print(score, drive_log)
+
+        return {'score': score, 'drive_log': drive_log}
     except Exception as e:
         print(e)
         return 'Error ending route'

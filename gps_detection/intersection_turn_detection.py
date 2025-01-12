@@ -32,7 +32,7 @@ def correct_coords(coordinates):
     else:
         raise Exception(f"Error: {response.status_code}, {response.text}")
 
-intersections = json.load(open('crossroadMapInfo.json', 'r', encoding='utf-8'))
+intersections = json.load(open('gps_detection/crossroadMapInfo.json', 'r', encoding='utf-8'))
 
 # 위도, 경도를 하버사인 공식을 이용해서 거리로 변환
 def haversine(lat1, lon1, lat2, lon2):
