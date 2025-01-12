@@ -129,7 +129,7 @@ def end():
         drive_log = []
         # wrong_intersection = detect_wrong_intersection(route_gps[route_id])
         
-        print('asdf')
+        print('asdf.')
 
         accurate_path = route_gps[route_id] # gps_detection.get_accurate_path(route_gps[route_id])
         print('asdf.')
