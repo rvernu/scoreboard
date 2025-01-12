@@ -115,6 +115,15 @@ def start():
 def end():
     try:
         route_id = request.form['route_id']
+
+        with open(f'./tmp/{route_id}/gps.txt', 'w') as f:
+            f.write(str(route_gps[route_id]))
+        with open(f'./tmp/{route_id}/crosswalk.txt', 'w') as f:
+            f.write(str(route_crosswalk[route_id]))
+        with open(f'./tmp/{route_id}/human.txt', 'w') as f:
+            f.write(str(route_human[route_id]))
+        with open(f'./tmp/{route_id}/lane.txt', 'w') as f:
+            f.write(str(route_lane[route_id]))
     
         score = 100
         drive_log = []
