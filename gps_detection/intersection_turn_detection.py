@@ -7,7 +7,7 @@ def correct_coords(coordinates):
     url = "https://api.mapbox.com/matching/v5/mapbox/driving"
     access_token = "pk.eyJ1IjoiaHl1bnNlb25nMzAyMCIsImEiOiJjbTVzbGc4d2wwa2VpMmtxeDhmZDdtMms5In0.DKZrscTW4O3cvF0MI9L3Fw"
 
-    coordinate_list = [f"{coordinate.longitude},{coordinate.latitude}" for coordinate in coordinates]
+    coordinate_list = [f"{coordinate['longitude']},{coordinate['latitude']}" for coordinate in coordinates]
     formatted_coords = ";".join(coordinate_list)
 
     data = {
@@ -68,7 +68,7 @@ def find_nearest_intersection(lat, lon):
 # 수평경로와 수직경로, 시간차를 이용해서 속도를 계산
 def calculate_speed(points):
     point1, point2 = points
-    latlng_distance = haversine(point1.latitude, point1.longitude, point2.latitude, point2.longitude) # km
+    latlng_distance = haversine(point1['latitude'], point1['longitude'], point2['latitude'], point2['longitude']) # km
     # final_distance = math.sqrt(latlng_distance ** 2 + ((point1.elevation - point2.elevation) / 1000) ** 2) # km
     time = float(point2.timestamp - point1.timestamp) / 3600 # hour
     if time > 0:
@@ -80,9 +80,9 @@ def calculate_speed(points):
 def calculate_angle(points):
     point1, point2, point3 = points
 
-    lat1, lon1 = math.radians(point1.latitude), math.radians(point1.longitude)
-    lat2, lon2 = math.radians(point2.latitude), math.radians(point2.longitude)
-    lat3, lon3 = math.radians(point3.latitude), math.radians(point3.longitude)
+    lat1, lon1 = math.radians(point1['latitude']), math.radians(point1['longitude'])
+    lat2, lon2 = math.radians(point2['latitude']), math.radians(point2['longitude'])
+    lat3, lon3 = math.radians(point3['latitude']), math.radians(point3['longitude'])
 
     vec1_lat = lat1 - lat2
     vec1_lon = lon1 - lon2
@@ -106,7 +106,8 @@ def calculate_angle(points):
 
 
 def detect_wrong_turn(points):
-    on_intersections = [find_nearest_intersection(point.latitude, point.longitude) for point in points]
+    print(points)
+    on_intersections = [find_nearest_intersection(point['latitude'], point['longitude']) for point in points]
     start, end = 0, 0
     last = on_intersections[end].get('itstId') if on_intersections[end] else None
     pairs = []

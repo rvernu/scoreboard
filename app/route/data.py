@@ -1,6 +1,6 @@
 import os
 import random
-import shutil
+import traceback
 
 from flask import Blueprint, request
 
@@ -82,12 +82,12 @@ def upload_image():
 @data_route.route('/gps', methods=['POST'])
 def upload_gps():
     try:
-        route_id = request.form.get('route_id', '')
-        longitude = request.form.get('longitude', '')
-        latitude = request.form.get('latitude', '')
-        timestamp = request.form.get('timestamp', '')
+        route_id = request.form['route_id']
+        longitude = request.form['longitude']
+        latitude = request.form['latitude']
+        timestamp = request.form['timestamp']
 
-        route_gps[route_id].append({'longitude': longitude, 'latitude': latitude, 'timestamp': timestamp})
+        route_gps[route_id].append({'longitude': float(longitude), 'latitude': float(latitude), 'timestamp': int(timestamp)})
         return "1"
     except Exception as e:
         print(e)
@@ -114,7 +114,7 @@ def start():
 @data_route.route('/end', methods=['POST'])
 def end():
     try:
-        route_id = request.form.get('route_id', '')
+        route_id = request.form['route_id']
     
         score = 100
         drive_log = []
@@ -122,7 +122,7 @@ def end():
         
         print('asdf')
 
-        accurate_path = route_gps[route_id] # gps_detection.get_accurate_path(route_gps[route_id]) # TODO: 이거 정확성 판별하고 아니면 route_gps[route_id]로 바꾸기
+        accurate_path = route_gps[route_id] # gps_detection.get_accurate_path(route_gps[route_id])
         print('asdf')
         # 차선 우측 통행 결과
         for timestamp in route_lane[route_id]:
@@ -153,5 +153,5 @@ def end():
         print('asdf')
         return {'score': score, 'drive_log': drive_log}
     except Exception as e:
-        print(e)
+        traceback.print_exc()
         return 'Error ending route'
