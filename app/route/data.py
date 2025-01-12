@@ -127,7 +127,7 @@ def end():
             drive_log.append([gps_detection.get_loc_from_timestamp(accurate_path, timestamp), "도로 우측 통행 감점 -5"])
         
         wrong_turns = gps_detection.detect_wrong_turn(route_gps[route_id])
-        wrong_crosses = gps_detection.detect_wrong_cross(route_gps[route_id])
+        correct_crosses, wrong_crosses = gps_detection.detect_wrong_cross(route_gps[route_id])
         correct_human, wrong_human = gps_detection.detect_wrong_human(route_gps[route_id])
 
         return "1"  # TODO: 결과 반환
