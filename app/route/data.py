@@ -128,12 +128,8 @@ def end():
         
         wrong_turns = gps_detection.detect_wrong_turn(route_gps[route_id])
         wrong_crosses = gps_detection.detect_wrong_cross(route_gps[route_id])
-        # TODO 주위사람 감속
-        # TODO 차선 결과 반영
+        correct_human, wrong_human = gps_detection.detect_wrong_human(route_gps[route_id])
 
-        shutil.rmtree(f'./tmp/{route_id}')
-        del route_count[route_id]
-        del route_gps[route_id]
         return "1"  # TODO: 결과 반환
     except Exception as e:
         print(e)

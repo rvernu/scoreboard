@@ -213,7 +213,7 @@ def detect_wrong_cross(points, timestamps):
     for pair in pairs:
         gps_datas = []
         for i in range(len(points)):
-            if pair[0] <= timestamps[i] <= pair[1]:
+            if pair[0] <= timestamps[i] <= pair[1] + 10:
                 gps_datas.append(points[i])
         if not is_crosswalkcorrectly(gps_datas):
             result.append(pair)
@@ -228,6 +228,51 @@ def is_crosswalkcorrectly(gps_datas, velocity_threshold=10): # km/h
     mean_velocities = [(velocity_datas[0] + velocity_datas[1])/2 for velocity_datas in list(zip(velocities, velocities[1:]))]
 
     return all([velocity < velocity_threshold for velocity in mean_velocities])
+
+
+def detect_wrong_human(points, timestamps):
+    # 연속한 timestamp 찾기(현재 간격 15초)
+    # 연속한 timestamp가 있을 시 처음 타임스탬프 ~ 마지막 타임스탬프 + 10초동안 속도 확인
+    # 속도가 기준보다 높은 때가 있는 구간 / 전부 기준보다 낮은 구간
+
+    if len(timestamps) < 2:
+        return []
+
+    start = timestamps[0]
+    last = timestamps[0]
+
+    pairs = []
+    for end in timestamps:
+        if end - last > 15:
+            if start != last:
+                pairs.append([start, last])
+            start = end
+        last = end
+    if start != last:
+        pairs.append([start, last])
+
+    corrects = []
+    wrongs = []
+    for pair in pairs:
+        gps_datas = []
+        for i in range(len(points)):
+            if pair[0] <= timestamps[i] <= pair[1] + 10:
+                gps_datas.append(points[i])
+        if not is_crosswalkcorrectly(gps_datas):
+            wrongs.append(pair)
+        else:
+            corrects.append(pair)
+    return corrects, wrongs
+
+
+def is_wronghuman(gps_datas, velocity_threshold=10): # km/h
+    if len(gps_datas) <= 2:
+        return True
+
+    velocities = [calculate_speed(coord_datas) for coord_datas in list(zip(gps_datas, gps_datas[1:]))]
+    mean_velocities = [(velocity_datas[0] + velocity_datas[1])/2 for velocity_datas in list(zip(velocities, velocities[1:]))]
+
+    return any([velocity > velocity_threshold for velocity in mean_velocities])
 
 
 if __name__ == "__main__":

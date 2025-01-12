@@ -1,1 +1,1 @@
-from .intersection_turn_detection import detect_wrong_turn, detect_wrong_cross
+from .intersection_turn_detection import detect_wrong_turn, detect_wrong_cross, detect_wrong_human
