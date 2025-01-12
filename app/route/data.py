@@ -1,6 +1,6 @@
 import os
 import random
-import shutil
+import traceback
 
 from flask import Blueprint, request
 
@@ -153,5 +153,5 @@ def end():
         print('asdf')
         return {'score': score, 'drive_log': drive_log}
     except Exception as e:
-        print(e)
+        print(traceback.format_exc())
         return 'Error ending route'
