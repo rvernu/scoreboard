@@ -123,7 +123,7 @@ def end():
         print('asdf')
 
         accurate_path = route_gps[route_id] # gps_detection.get_accurate_path(route_gps[route_id])
-        print('asdf')
+        print('asdf.')
         # 차선 우측 통행 결과
         for timestamp in route_lane[route_id]:
             score -= 5
